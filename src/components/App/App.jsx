@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AppContainer } from './AppStyles';
 import getProducts from '../../Api/Api';
 import Searchbar from '../Searchbar/Searchbar';
@@ -7,82 +7,73 @@ import Button from '../Button/Button';
 import ImageModal from '../Modal/Modal';
 import LoadingSpinner from '../Loader/Loader';
 
-class App extends Component {
-  state = {
-    query: '',
-    images: [],
-    isLoading: false,
-    error: null,
-    page: 1,
-    isLastPage: false,
-  };
+function App() {
+  const [query, setQuery] = useState('');
+  const [images, setImages] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [, setError] = useState(null);
+  const [page, setPage] = useState(1);
+  const [isLastPage, setIsLastPage] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [selectedImage, setSelectedImage] = useState('');
 
-  componentDidUpdate(_, prevState) {
-    if (
-      this.state.page !== prevState.page ||
-      this.state.query !== prevState.query
-    ) {
-      this.fetchImages();
-    }
-  }
-  handleSearchSubmit = query => {
-    if (this.state.query === query) {
+  useEffect(() => {
+    fetchImages();
+    // eslint-disable-next-line
+  }, [query, page]);
+
+  const handleSearchSubmit = newQuery => {
+    if (query === newQuery) {
       return;
     }
 
-    this.setState({
-      query: query,
-      images: [],
-      isLoading: true,
-      error: null,
-      page: 1,
-      isLastPage: false,
-    });
+    setQuery(newQuery);
+    setImages([]);
+    setIsLoading(true);
+    setError(null);
+    setPage(1);
+    setIsLastPage(false);
   };
 
-  fetchImages = async () => {
-    const { query, page } = this.state;
-
-    this.setState({ isLoading: true });
+  const fetchImages = async () => {
+    setIsLoading(true);
 
     try {
-      const { images, message, isLastPage } = await getProducts(query, page);
-      this.setState(prevState => ({
-        images: [...prevState.images, ...images],
-        error: message,
+      const {
+        images: fetchedImages,
+        message,
         isLastPage,
-        isLoading: false,
-      }));
+      } = await getProducts(query, page);
+
+      setImages(prevImages => [...prevImages, ...fetchedImages]);
+      setError(message);
+      setIsLastPage(isLastPage);
     } catch (error) {
-      this.setState({
-        error: 'Error fetching products. Please try again.',
-        isLoading: false,
-      });
+      setError('Error fetching products. Please try again.');
     }
+    setIsLoading(false);
   };
 
-  handleLoadMore = () => {
-    this.setState(prevState => ({
-      page: prevState.page + 1,
-    }));
+  const handleLoadMore = () => {
+    setPage(prevPage => prevPage + 1);
   };
 
-  handleImageClick = selectedImage => {
-    this.setState({ showModal: true, selectedImage });
+  const handleImageClick = selectedImage => {
+    setSelectedImage(selectedImage);
+    setShowModal(true);
   };
 
-  closeImageModal = () => {
-    this.setState({ showModal: false, selectedImage: '' });
+  const closeImageModal = () => {
+    setShowModal(false);
+    setSelectedImage('');
   };
 
-  render() {
-    const { images, isLoading, showModal, selectedImage, isLastPage } =
-      this.state;
-
+  // eslint-disable-next-line no-lone-blocks
+  {
     return (
       <AppContainer>
-        <Searchbar onSubmit={this.handleSearchSubmit} />
-        <ImageGallery images={images} onItemClick={this.handleImageClick} />
+        <Searchbar onSubmit={handleSearchSubmit} />
+        <ImageGallery images={images} onItemClick={handleImageClick} />
         {isLoading ? (
           <LoadingSpinner />
         ) : (
@@ -91,10 +82,10 @@ class App extends Component {
               <ImageModal
                 isOpen={showModal}
                 imageUrl={selectedImage}
-                onClose={this.closeImageModal}
+                onClose={closeImageModal}
               />
             )}
-            {isLastPage && <Button onClick={this.handleLoadMore} />}
+            {isLastPage && <Button onClick={handleLoadMore} />}
           </>
         )}
       </AppContainer>

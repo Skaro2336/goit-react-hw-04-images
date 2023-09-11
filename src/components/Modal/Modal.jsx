@@ -1,43 +1,39 @@
-import React, { Component } from 'react';
+import React, { useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { ModalOverlay, ModalContent, ModalImg } from './ModalStyles';
 
-class ImageModal extends Component {
-  componentDidMount() {
-    window.addEventListener('keydown', this.handleKeyPress);
-  }
+function ImageModal({ isOpen, imageUrl, onClose }) {
+  useEffect(() => {
+    const handleKeyPress = e => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
 
-  componentWillUnmount() {
-    window.removeEventListener('keydown', this.handleKeyPress);
-  }
+    window.addEventListener('keydown', handleKeyPress);
 
-  handleKeyPress = event => {
-    if (event.key === 'Escape') {
-      this.props.onClose();
+    return () => {
+      window.removeEventListener('keydown', handleKeyPress);
+    };
+  }, [onClose]);
+
+  const handleBackdropClick = e => {
+    if (e.target === e.currentTarget) {
+      onClose();
     }
   };
 
-  handleBackdropClick = event => {
-    if (event.target === event.currentTarget) {
-      this.props.onClose();
-    }
-  };
-
-  render() {
-    const { isOpen, imageUrl } = this.props;
-
-    return (
-      <>
-        {isOpen && (
-          <ModalOverlay onClick={this.handleBackdropClick}>
-            <ModalContent>
-              <ModalImg src={imageUrl} alt="Large" />
-            </ModalContent>
-          </ModalOverlay>
-        )}
-      </>
-    );
-  }
+  return (
+    <>
+      {isOpen && (
+        <ModalOverlay onClick={handleBackdropClick}>
+          <ModalContent>
+            <ModalImg src={imageUrl} alt="Large" />
+          </ModalContent>
+        </ModalOverlay>
+      )}
+    </>
+  );
 }
 
 ImageModal.propTypes = {

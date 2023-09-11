@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { FaSearch } from 'react-icons/fa';
 
@@ -9,44 +9,40 @@ import {
   SearchbarButton,
 } from './SearchbarStyles';
 
-class Searchbar extends Component {
-  state = {
-    query: '',
+function Searchbar({ onSubmit }) {
+  const [query, setQuery] = useState('');
+
+  const handleChange = e => {
+    setQuery(e.target.value);
   };
 
-  handleChange = e => {
-    this.setState({ query: e.target.value });
-  };
-
-  handleSubmit = e => {
+  const handleSubmit = e => {
     e.preventDefault();
-    if (!this.state.query.trim()) {
+    if (!query.trim()) {
       return;
     }
-    this.props.onSubmit(this.state.query);
-    this.setState({ query: '' });
+    onSubmit(query);
+    setQuery('');
   };
 
-  render() {
-    return (
-      <SearchbarHead>
-        <SearchbarForm onSubmit={this.handleSubmit}>
-          <SearchbarButton type="submit">
-            <FaSearch className="search-icon" />
-          </SearchbarButton>
+  return (
+    <SearchbarHead>
+      <SearchbarForm onSubmit={handleSubmit}>
+        <SearchbarButton type="submit">
+          <FaSearch className="search-icon" />
+        </SearchbarButton>
 
-          <SearchbarInput
-            type="text"
-            autoComplete="off"
-            autoFocus
-            placeholder="Search..."
-            value={this.state.query}
-            onChange={this.handleChange}
-          />
-        </SearchbarForm>
-      </SearchbarHead>
-    );
-  }
+        <SearchbarInput
+          type="text"
+          autoComplete="off"
+          autoFocus
+          placeholder="Search..."
+          value={query}
+          onChange={handleChange}
+        />
+      </SearchbarForm>
+    </SearchbarHead>
+  );
 }
 
 Searchbar.propTypes = {
